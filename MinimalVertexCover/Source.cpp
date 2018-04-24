@@ -150,7 +150,7 @@ int main()
 		auto g = generateGraph(nodes, edges);
 
 		f << g.amountNodes;
-		for (int j = 0; j < g.amountNodes; j++)
+		for (int j = 0; j < g.edges.size(); j++)
 		{
 			f << "," << g.edges[j].first << "," << g.edges[j].second;
 		}
@@ -175,7 +175,7 @@ int main()
 				}
 				else
 				{
-					f << "," << "2";
+					f << "," << "10";
 				}
 			}
 		}
