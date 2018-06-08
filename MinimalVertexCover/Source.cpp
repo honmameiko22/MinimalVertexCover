@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <time.h>
 
 struct Graph
 {
@@ -48,34 +49,11 @@ Graph generateGraph(int nodes, int edges)
 
 bool isVertexCover(Graph g, VertexCover vc)
 {
-	for (int i = 0; i < g.amountNodes; i++)
+	for (auto e : g.edges)
 	{
-		if (!vc.nodeIsCover[i])
+		if (!vc.nodeIsCover[e.first] && !vc.nodeIsCover[e.second])
 		{
-			bool found = false;
-
-			for (auto e : g.edges)
-			{
-				if (i == e.first)
-				{
-					if (vc.nodeIsCover[e.second])
-					{
-						found = true;
-					}
-				}
-				if (i == e.second)
-				{
-					if (vc.nodeIsCover[e.first])
-					{
-						found = true;
-					}
-				}
-			}
-
-			if (!found)
-			{
-				return false;
-			}
+			return false;
 		}
 	}
 	return true;
@@ -158,24 +136,48 @@ void findAllCovers(Graph& g, VertexCover& vc, std::vector<VertexCover>& allVcs, 
 	}
 }
 
-int main()
+float benchmark(int amount, int nodes, int edges, bool all=false)
 {
-	int nodes = 7;
-	int edges = 10;
+	std::vector<Graph> gs;
 
+	for (int i = 0; i < amount; i++)
+	{
+		gs.push_back(generateGraph(nodes, edges));
+	}
+
+	clock_t t = clock();
+
+	for (int i = 0; i < amount; i++)
+	{
+		VertexCover prototype;
+		int minimum = nodes;
+		std::vector<VertexCover> allVcs;
+		findAllCovers(gs[i], prototype, allVcs, minimum);
+	}
+
+	t = clock() - t;
+	return ((float)t) / CLOCKS_PER_SEC;
+}
+
+void makeDataset(int amount, int nodes, int edges)
+{
 	int maxMin = 0;
+	int fillUp = 75;
+	int dropped = 0;
 
-	std::string filename = "outputFile.csv";
+	std::string filename = "RawVertexCover-" + std::to_string(amount) + "-" + std::to_string(nodes) + "-" + std::to_string(edges) + ".csv";
 	std::ofstream f(filename, std::ofstream::out);
 	if (!f.is_open())
 	{
 		std::cout << "failed to open " << filename << std::endl;
 		std::cin.get();
 
-		return 0;
+		return;
 	}
 
-	for (int i = 0; i < 1000000; i++)
+	std::cout << amount << "-" << nodes << "-" << edges << ": ";
+
+	for (int i = 0; i < amount; i++)
 	{
 		auto g = generateGraph(nodes, edges);
 
@@ -184,11 +186,7 @@ int main()
 			g = generateGraph(nodes, edges);
 		}
 
-		f << g.amountNodes;
-		for (int j = 0; j < g.edges.size(); j++)
-		{
-			f << "," << g.edges[j].first << "," << g.edges[j].second;
-		}
+		
 
 		VertexCover prototype;
 
@@ -197,50 +195,69 @@ int main()
 
 		findAllCovers(g, prototype, allVcs, minimum);
 
-		f << "," << minimum;
-
-		for (int j = 0; j < 30; j++)
+		if (allVcs.size() <= fillUp)
 		{
-			for (int k = 0; k < g.amountNodes; k++)
+
+			f << g.amountNodes;
+			for (int j = 0; j < g.edges.size(); j++)
 			{
-				if (j < allVcs.size())
+				f << "," << g.edges[j].first << "," << g.edges[j].second;
+			}
+
+			f << "," << minimum;
+
+			for (int j = 0; j < fillUp; j++)
+			{
+				for (int k = 0; k < g.amountNodes; k++)
 				{
-					f << "," << allVcs[j].nodeIsCover[k]?"1":"0";
-				}
-				else
-				{
-					f << "," << "10";
+					if (j < allVcs.size())
+					{
+						f << "," << allVcs[j].nodeIsCover[k] ? "1" : "0";
+					}
+					else
+					{
+						f << "," << "10";
+					}
 				}
 			}
-		}
 
-		f << std::endl;
+			f << std::endl;
+		}
+		else
+		{
+			dropped++;
+			i--;
+		}
 
 		if (allVcs.size() > maxMin)
 		{
 			maxMin = allVcs.size();
 		}
 
-		if (i % 100 == 0 && i > 0)
+		if (i % (int)(amount / 50) == 0 && i > 0)
 		{
 			std::cout << ".";
 		}
-		if (i % 10000 == 0 && i > 0)
-		{
-			std::cout << i << std::endl;
-		}
-
-
-		//std::cout << "Minimum cover: " << minimum << std::endl;
-
-		//std::cout << "Covers found:  " << allVcs.size() << std::endl << std::endl;
 	}
-
-	std::cout << "Max Min: " << maxMin << std::endl;
+	std::cout << " Max amount: " << maxMin << " Dropped: " << dropped << std::endl;
 
 	f.close();
+}
+
+int main()
+{
+	makeDataset(10000, 7, 10);
+	makeDataset(10000, 9, 14);
+	makeDataset(10000, 11, 18);
+	makeDataset(10000, 13, 22);
+
+	makeDataset(100000, 7, 10);
+	makeDataset(100000, 9, 14);
+	makeDataset(100000, 11, 18);
+	makeDataset(100000, 13, 22);
 
 	std::cin.get();
 
 	return 0;
 }
+

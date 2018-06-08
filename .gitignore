@@ -260,3 +260,12 @@ paket-files/
 __pycache__/
 *.pyc
 /MinimalVertexCover/outputFile.csv
+/MinimalVertexCover/RawVertexCover-100000-9-14.csv
+/MinimalVertexCover/RawVertexCover-100000-7-10.csv
+/MinimalVertexCover/RawVertexCover-100000-13-22.csv
+/MinimalVertexCover/RawVertexCover-100000-11-18.csv
+/MinimalVertexCover/RawVertexCover-10000-9-14.csv
+/MinimalVertexCover/RawVertexCover-10000-7-10.csv
+/MinimalVertexCover/RawVertexCover-10000-13-22.csv
+/MinimalVertexCover/RawVertexCover-10000-11-18.csv
+/MinimalVertexCover/data.zip
